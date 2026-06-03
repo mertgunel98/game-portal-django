@@ -1,0 +1,168 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block title %}GamePortal - Profilim{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="section-header">
+        <h2 class="section-title">Kullanıcı Profili</h2>
+        <span style="color: var(--text-secondary); font-size: 0.9rem;">
+            Hesabınızı ve aktivitelerinizi yönetin
+        </span>
+    </div>
+
+    <!-- Tabs Headers -->
+    <div class="tab-headers" style="margin-bottom: 30px;">
+        <div class="tab-header active" onclick="switchTab(this, 'watchlistTab')">
+            <i class="fa-solid fa-bookmark"></i> İstek Listem ({{ game_list.count }})
+        </div>
+        <div class="tab-header" onclick="switchTab(this, 'myReviewsTab')">
+            <i class="fa-solid fa-comments"></i> Yorumlarım & Puanlarım ({{ my_reviews.count }})
+        </div>
+    </div>
+
+    <!-- Tab 1: Watchlist -->
+    <div class="tab-pane active" id="watchlistTab">
+        {% if game_list %}
+            <div class="media-grid">
+                {% for game in game_list %}
+                    <div class="media-card" style="display: flex; flex-direction: column;">
+                        <a href="{% url 'game_detail' slug=game.slug %}">
+                            <div class="card-img-wrapper">
+                                <img src="{{ game.cover_image }}" alt="{{ game.title }}" class="card-img">
+                                <div class="card-rating-top {% if game.rating_metacritic >= 90 %}rating-high{% elif game.rating_metacritic >= 80 %}rating-mid{% else %}rating-low{% endif %}">
+                                    <i class="fa-solid fa-star"></i> {{ game.rating_metacritic }}
+                                </div>
+                                <div class="card-hover-overlay">
+                                    <h3 class="card-title">{{ game.title }}</h3>
+                                    <p class="card-genres">{{ game.get_genres_display }}</p>
+                                    <div class="card-meta-bottom">
+                                        <div class="card-platforms">
+                                            {% for platform in game.platforms.all|slice:":3" %}
+                                                <i class="fa-brands {% if platform.name == 'PC' %}fa-windows{% elif 'PlayStation' in platform.name %}fa-playstation{% elif 'Xbox' in platform.name %}fa-xbox{% elif 'Nintendo' in platform.name %}fa-nintendo-switch{% else %}fa-gamepad{% endif %}" title="{{ platform.name }}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="card-type-badge">{{ game.release_date|date:"Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Quick Wishlist Actions below the card layout -->
+                        <div style="padding: 10px; background: rgba(255, 255, 255, 0.02); border-top: 1px solid var(--border-color); text-align: center;">
+                            <a href="{% url 'toggle_watchlist' game_id=game.id %}" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px; width: 100%; justify-content: center;">
+                                <i class="fa-solid fa-trash-can"></i> Listeden Kaldır
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 60px 0; color: var(--text-secondary);">
+                <i class="fa-regular fa-bookmark" style="font-size: 4rem; margin-bottom: 20px; display: block; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                <h3>İstek listeniz henüz boş.</h3>
+                <p style="margin-top: 10px;">Beğendiğiniz oyunları istek listenize ekleyerek burada görüntüleyebilirsiniz.</p>
+                <a href="{% url 'browse' %}" class="btn btn-primary" style="margin-top: 20px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Oyunları Keşfet
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 2: My Reviews -->
+    <div class="tab-pane" id="myReviewsTab">
+        {% if my_reviews %}
+            <div style="overflow-x: auto; background: var(--bg-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color); border-radius: 20px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: #fff;">
+                            <th style="padding: 16px 20px; width: 80px;">Görsel</th>
+                            <th style="padding: 16px 20px;">Oyun</th>
+                            <th style="padding: 16px 20px; width: 100px;">Puanım</th>
+                            <th style="padding: 16px 20px;">Yorumum</th>
+                            <th style="padding: 16px 20px; width: 150px;">Tarih</th>
+                            <th style="padding: 16px 20px; width: 100px; text-align: center;">Aksiyon</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review in my_reviews %}
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: var(--transition-smooth); background: rgba(255,255,255,0.005);" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='rgba(255,255,255,0.005)'">
+                                <td style="padding: 12px 20px;">
+                                    <img src="{{ review.game.cover_image }}" alt="{{ review.game.title }}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);">
+                                </td>
+                                <td style="padding: 16px 20px; font-weight: 600;">
+                                    <a href="{% url 'game_detail' slug=review.game.slug %}" target="_blank" style="color: var(--accent);">{{ review.game.title }}</a>
+                                </td>
+                                <td style="padding: 16px 20px;">
+                                    <span style="background: rgba(251,191,36,0.1); color: var(--gold); border: 1px solid rgba(251,191,36,0.2); padding: 4px 8px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+                                        ★ {{ review.rating }}
+                                    </span>
+                                </td>
+                                <td style="padding: 16px 20px; color: #cbd5e1; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ review.text }}">
+                                    {{ review.text }}
+                                </td>
+                                <td style="padding: 16px 20px; color: var(--text-secondary);">{{ review.created_at|date:"d.m.Y H:i" }}</td>
+                                <td style="padding: 16px 20px; text-align: center;">
+                                    <div style="display: inline-flex; gap: 8px;">
+                                        <a href="{% url 'game_detail' slug=review.game.slug %}" target="_blank" class="btn btn-secondary btn-icon" style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 50%;" title="Oyuna Git">
+                                            <i class="fa-solid fa-up-right-from-square"></i>
+                                        </a>
+                                        <a href="{% url 'delete_review' review_id=review.id %}" onclick="return confirm('Bu yorumu silmek istediğinize emin misiniz?')" class="btn btn-danger btn-icon" style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 50%;" title="Yorumu Sil">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 60px 0; color: var(--text-secondary);">
+                <i class="fa-regular fa-comments" style="font-size: 4rem; margin-bottom: 20px; display: block; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                <h3>Henüz hiç yorum yazmadınız.</h3>
+                <p style="margin-top: 10px;">Oyun sayfalarına giderek puan verebilir ve yorumlarınızı ekleyebilirsiniz.</p>
+                <a href="{% url 'browse' %}" class="btn btn-primary" style="margin-top: 20px;">
+                    <i class="fa-solid fa-magnifying-glass"></i> Oyunları Keşfet
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchTab(element, tabId) {
+        const headers = document.querySelectorAll('.tab-header');
+        const panes = document.querySelectorAll('.tab-pane');
+        
+        headers.forEach(h => h.classList.remove('active'));
+        panes.forEach(p => p.classList.remove('active'));
+
+        element.classList.add('active');
+        const activePane = document.getElementById(tabId);
+        activePane.classList.add('active');
+        
+        // Save choice in localStorage
+        localStorage.setItem('userActiveTab', tabId);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const savedTabId = localStorage.getItem('userActiveTab');
+        if (savedTabId) {
+            const pane = document.getElementById(savedTabId);
+            if (pane) {
+                const headers = document.querySelectorAll('.tab-header');
+                headers.forEach(header => {
+                    const onclickAttr = header.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes(savedTabId)) {
+                        switchTab(header, savedTabId);
+                    }
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,275 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block title %}GamePortal - Yönetim Paneli{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="section-header">
+        <h2 class="section-title">Yönetim Paneli</h2>
+        <span style="color: var(--text-secondary); font-size: 0.9rem;">Yönetici yetkileriyle işlem yapıyorsunuz</span>
+    </div>
+
+    <!-- Tabs Headers -->
+    <div class="tab-headers" style="margin-bottom: 30px;">
+        <div class="tab-header active" onclick="switchTab(this, 'addGameTab')">
+            <i class="fa-solid fa-folder-plus"></i> Yeni Oyun Ekle
+        </div>
+        <div class="tab-header" onclick="switchTab(this, 'manageReviewsTab')">
+            <i class="fa-solid fa-comments"></i> Yorumları Yönet ({{ all_reviews.count }})
+        </div>
+        <div class="tab-header" onclick="switchTab(this, 'manageGamesTab')">
+            <i class="fa-solid fa-gamepad"></i> Oyunları Yönet ({{ all_games.count }})
+        </div>
+    </div>
+
+    <!-- Tab 1: Add Game Form -->
+    <div class="tab-pane active" id="addGameTab">
+        <div class="review-form-card" style="max-width: 800px; margin: 0 auto; background: var(--bg-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color);">
+            <h3 class="review-form-title" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+                <i class="fa-solid fa-plus-circle" style="color: var(--accent);"></i> Yeni Oyun Ekle
+            </h3>
+            
+            <form action="{% url 'add_game' %}" method="POST">
+                {% csrf_token %}
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label for="title" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Oyun Adı *</label>
+                        <input type="text" name="title" id="title" class="form-control" required placeholder="Örn: Elden Ring">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="developer" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Geliştirici</label>
+                        <input type="text" name="developer" id="developer" class="form-control" placeholder="Örn: FromSoftware">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="publisher" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Yayıncı</label>
+                        <input type="text" name="publisher" id="publisher" class="form-control" placeholder="Örn: Bandai Namco">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="release_date" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Çıkış Tarihi</label>
+                        <input type="date" name="release_date" id="release_date" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rating_metacritic" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Metacritic Puanı (0-100)</label>
+                        <input type="number" name="rating_metacritic" id="rating_metacritic" class="form-control" min="0" max="100" placeholder="Örn: 95">
+                    </div>
+
+                    <div class="form-group" style="display: flex; align-items: center; margin-top: 30px;">
+                        <input type="checkbox" name="is_featured" id="is_featured" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent);">
+                        <label for="is_featured" style="font-weight: 600; font-size: 0.95rem; margin-left: 10px; cursor: pointer;">Ana Sayfa Vitrininde Göster (Featured)</label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="description" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Oyun Açıklaması *</label>
+                    <textarea name="description" id="description" rows="5" class="form-control" placeholder="Oyunun konusu, mekanikleri vb..." required></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                    <div class="form-group">
+                        <label for="cover_image" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Kapak Resmi URL</label>
+                        <input type="url" name="cover_image" id="cover_image" class="form-control" placeholder="Dikey kapak görseli linki">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="backdrop_image" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Arka Plan Resmi URL</label>
+                        <input type="url" name="backdrop_image" id="backdrop_image" class="form-control" placeholder="Geniş yatay arka plan görseli linki">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="video_url" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Fragman YouTube Embed URL</label>
+                        <input type="url" name="video_url" id="video_url" class="form-control" placeholder="Örn: https://www.youtube-nocookie.com/embed/XXXXX">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="store_url" style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary);">Satın Alma / Mağaza URL</label>
+                        <input type="url" name="store_url" id="store_url" class="form-control" placeholder="Örn: Steam veya konsol mağazası linki">
+                    </div>
+                </div>
+
+                <!-- Genres Checkboxes -->
+                <div class="form-group" style="margin-top: 20px;">
+                    <span style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-secondary);">Oyun Türleri (Kategoriler)</span>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        {% for genre in genres %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" name="genres" value="{{ genre.id }}" id="genre_{{ genre.id }}" style="cursor: pointer; accent-color: var(--accent);">
+                                <label for="genre_{{ genre.id }}" style="font-size: 0.85rem; cursor: pointer; color: #cbd5e1;">{{ genre.name }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Platforms Checkboxes -->
+                <div class="form-group" style="margin-top: 20px;">
+                    <span style="display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 10px; color: var(--text-secondary);">Desteklenen Platformlar</span>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        {% for platform in platforms %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" name="platforms" value="{{ platform.id }}" id="platform_{{ platform.id }}" style="cursor: pointer; accent-color: var(--accent);">
+                                <label for="platform_{{ platform.id }}" style="font-size: 0.85rem; cursor: pointer; color: #cbd5e1;">{{ platform.name }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 40px; font-size: 1rem;">
+                        <i class="fa-solid fa-save"></i> Oyunu Kaydet ve Yayınla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tab 2: Manage Reviews -->
+    <div class="tab-pane" id="manageReviewsTab">
+        {% if all_reviews %}
+            <div style="overflow-x: auto; background: var(--bg-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color); border-radius: 20px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: #fff;">
+                            <th style="padding: 16px 20px;">Oyun</th>
+                            <th style="padding: 16px 20px;">Kullanıcı</th>
+                            <th style="padding: 16px 20px; width: 80px;">Puan</th>
+                            <th style="padding: 16px 20px;">Yorum / Değerlendirme</th>
+                            <th style="padding: 16px 20px; width: 150px;">Tarih</th>
+                            <th style="padding: 16px 20px; width: 100px; text-align: center;">Aksiyon</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review in all_reviews %}
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: var(--transition-smooth); background: rgba(255,255,255,0.005);" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='rgba(255,255,255,0.005)'">
+                                <td style="padding: 16px 20px; font-weight: 600;">
+                                    <a href="{% url 'game_detail' slug=review.game.slug %}" target="_blank" style="color: var(--accent);">{{ review.game.title }}</a>
+                                </td>
+                                <td style="padding: 16px 20px; color: #fff;">{% if review.user %}{{ review.user.username }}{% else %}Anonim{% endif %}</td>
+                                <td style="padding: 16px 20px;">
+                                    <span style="background: rgba(251,191,36,0.1); color: var(--gold); border: 1px solid rgba(251,191,36,0.2); padding: 4px 8px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+                                        ★ {{ review.rating }}
+                                    </span>
+                                </td>
+                                <td style="padding: 16px 20px; color: #cbd5e1; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ review.text }}">
+                                    {{ review.text }}
+                                </td>
+                                <td style="padding: 16px 20px; color: var(--text-secondary);">{{ review.created_at|date:"d.m.Y H:i" }}</td>
+                                <td style="padding: 16px 20px; text-align: center;">
+                                    <a href="{% url 'delete_review' review_id=review.id %}" onclick="return confirm('Bu yorumu silmek istediğinize emin misiniz?')" class="btn btn-danger btn-icon" style="width: 32px; height: 32px; font-size: 0.8rem;" title="Yorumu Sil">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 60px 0; color: var(--text-secondary);">
+                <i class="fa-regular fa-comments" style="font-size: 3rem; margin-bottom: 15px; display: block; color: var(--accent);"></i>
+                <p>Veritabanında henüz hiç kullanıcı yorumu bulunmuyor.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 3: Manage Games -->
+    <div class="tab-pane" id="manageGamesTab">
+        {% if all_games %}
+            <div style="overflow-x: auto; background: var(--bg-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color); border-radius: 20px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02); color: #fff;">
+                            <th style="padding: 16px 20px; width: 80px;">Görsel</th>
+                            <th style="padding: 16px 20px;">Oyun Adı</th>
+                            <th style="padding: 16px 20px;">Geliştirici</th>
+                            <th style="padding: 16px 20px; width: 100px;">Metacritic</th>
+                            <th style="padding: 16px 20px;">Platformlar</th>
+                            <th style="padding: 16px 20px; width: 100px; text-align: center;">Aksiyon</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for game in all_games %}
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: var(--transition-smooth); background: rgba(255,255,255,0.005);" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='rgba(255,255,255,0.005)'">
+                                <td style="padding: 12px 20px;">
+                                    <img src="{{ game.cover_image }}" alt="{{ game.title }}" style="width: 40px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color);">
+                                </td>
+                                <td style="padding: 16px 20px; font-weight: 700;">
+                                    <a href="{% url 'game_detail' slug=game.slug %}" target="_blank" style="color: #fff;">{{ game.title }}</a>
+                                    {% if game.is_featured %}
+                                        <span style="font-size: 0.7rem; background: rgba(139,92,246,0.2); color: #c084fc; border: 1px solid var(--accent); padding: 2px 6px; border-radius: 4px; margin-left: 8px; text-transform: uppercase;">Vitrin</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 16px 20px; color: #cbd5e1;">{{ game.developer }}</td>
+                                <td style="padding: 16px 20px;">
+                                    <span style="font-weight: 800; color: {% if game.rating_metacritic >= 90 %}#22c55e{% elif game.rating_metacritic >= 80 %}#eab308{% else %}#ef4444{% endif %};">
+                                        {{ game.rating_metacritic }}
+                                    </span>
+                                </td>
+                                <td style="padding: 16px 20px; color: var(--text-secondary);">{{ game.get_platforms_display }}</td>
+                                <td style="padding: 16px 20px; text-align: center;">
+                                    <div style="display: inline-flex; gap: 8px;">
+                                        <a href="{% url 'toggle_featured' game_id=game.id %}" class="btn btn-secondary btn-icon" style="width: 32px; height: 32px; font-size: 0.8rem; background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.2); border-radius: 50%;" title="{% if game.is_featured %}Vitrinden Kaldır{% else %}Vitrine Ekle{% endif %}">
+                                            {% if game.is_featured %}
+                                                <i class="fa-solid fa-star" style="color: var(--gold);"></i>
+                                            {% else %}
+                                                <i class="fa-regular fa-star" style="color: var(--text-secondary);"></i>
+                                            {% endif %}
+                                        </a>
+                                        <a href="{% url 'delete_game' game_id=game.id %}" onclick="return confirm('{{ game.title }} oyununu veritabanından tamamen silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')" class="btn btn-danger btn-icon" style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 50%;" title="Oyunu Sil">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 60px 0; color: var(--text-secondary);">
+                <i class="fa-solid fa-gamepad" style="font-size: 3rem; margin-bottom: 15px; display: block; color: var(--accent);"></i>
+                <p>Veritabanında hiç oyun bulunmuyor.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchTab(element, tabId) {
+        const headers = document.querySelectorAll('.tab-header');
+        const panes = document.querySelectorAll('.tab-pane');
+        
+        headers.forEach(h => h.classList.remove('active'));
+        panes.forEach(p => p.classList.remove('active'));
+
+        element.classList.add('active');
+        const activePane = document.getElementById(tabId);
+        activePane.classList.add('active');
+        
+        // Save choice in localStorage
+        localStorage.setItem('adminActiveTab', tabId);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const savedTabId = localStorage.getItem('adminActiveTab');
+        if (savedTabId) {
+            const pane = document.getElementById(savedTabId);
+            if (pane) {
+                const headers = document.querySelectorAll('.tab-header');
+                headers.forEach(header => {
+                    const onclickAttr = header.getAttribute('onclick');
+                    if (onclickAttr && onclickAttr.includes(savedTabId)) {
+                        switchTab(header, savedTabId);
+                    }
+                });
+            }
+        }
+    });
+</script>
+{% endblock %}

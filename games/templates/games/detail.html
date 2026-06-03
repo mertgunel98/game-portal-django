@@ -1,0 +1,336 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block title %}GamePortal - {{ game.title }}{% endblock %}
+
+{% block content %}
+<!-- Game Details Hero -->
+<section class="detail-hero" style="background-image: url('{{ game.backdrop_image }}');">
+    <div class="hero-overlay"></div>
+    <div class="detail-container">
+        <div class="detail-poster">
+            <img src="{{ game.cover_image }}" alt="{{ game.title }}">
+        </div>
+        <div class="detail-info">
+            <h1 class="detail-title">{{ game.title }}</h1>
+            <div class="detail-meta-row">
+                <span class="rating-badge" style="font-size: 1.1rem;">
+                    <i class="fa-solid fa-star"></i> Metacritic: {{ game.rating_metacritic }}
+                </span>
+                <span>&bull;</span>
+                <span>{{ game.developer }}</span>
+                <span>&bull;</span>
+                <span>{{ game.release_date|date:"d F Y" }}</span>
+            </div>
+            
+            <div class="detail-genres">
+                {% for genre in game.genres.all %}
+                    <span class="detail-genre-badge">{{ genre.name }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="detail-actions">
+                <!-- Wishlist Action -->
+                {% if user.is_authenticated %}
+                    <a href="{% url 'toggle_watchlist' game_id=game.id %}" id="wishlistBtn" class="btn {% if in_wishlist %}btn-secondary{% else %}btn-primary{% endif %}">
+                        {% if in_wishlist %}
+                            <i class="fa-solid fa-bookmark"></i> İstek Listesinde
+                        {% else %}
+                            <i class="fa-regular fa-bookmark"></i> İstek Listesine Ekle
+                        {% endif %}
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-secondary">
+                        <i class="fa-regular fa-bookmark"></i> Kaydetmek için Giriş Yap
+                    </a>
+                {% endif %}
+
+                <!-- Store Action -->
+                {% if game.store_url %}
+                    <a href="{{ game.store_url }}" target="_blank" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+                        <i class="fa-solid fa-cart-shopping"></i> Satın Al / Mağaza Git
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Content Layout -->
+<div class="container-fluid">
+    <div class="detail-content-layout">
+        <!-- Main Content Area -->
+        <main>
+            <!-- Tabs Headers -->
+            <div class="tab-headers">
+                <div class="tab-header active" onclick="switchTab(this, 'descriptionTab')">Açıklama</div>
+                {% if game.video_url %}
+                    <div class="tab-header" id="trailer-header" onclick="switchTab(this, 'trailerTab')">Fragman</div>
+                {% endif %}
+                <div class="tab-header" onclick="switchTab(this, 'reviewsTab')">Yorumlar ({{ reviews.count }})</div>
+            </div>
+
+            <!-- Tab 1: Description -->
+            <div class="tab-pane active" id="descriptionTab">
+                <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 16px;">Oyun Hakkında</h3>
+                <p style="color: #cbd5e1; font-size: 1.05rem; line-height: 1.7; text-align: justify;">{{ game.description }}</p>
+            </div>
+
+            <!-- Tab 2: Trailer Video Player -->
+            {% if game.video_url %}
+            <div class="tab-pane" id="trailerTab">
+                <div class="player-container" id="trailer">
+                    {% if "youtube" in game.video_url or "youtu.be" in game.video_url or "vimeo" in game.video_url or "dailymotion" in game.video_url %}
+                        <iframe src="{{ game.video_url }}" referrerpolicy="no-referrer-when-downgrade" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                    {% else %}
+                        <video src="{{ game.video_url }}" controls width="100%" height="100%" style="position: absolute; top:0; left:0; width:100%; height:100%; border: none; border-radius: 20px; outline: none; background: #000;" playsinline></video>
+                    {% endif %}
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="{{ game.video_url }}" target="_blank" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 18px; border-radius: 12px;">
+                        <i class="fa-solid fa-up-right-from-square"></i> Videoyu Dış Bağlantıda Aç
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tab 3: Reviews and User ratings -->
+            <div class="tab-pane" id="reviewsTab">
+                <div class="reviews-section">
+                    <!-- Write Review Form -->
+                    <div class="review-form-card">
+                        <h3 class="review-form-title">
+                            Puanla ve Yorum Yap
+                            {% if not user.is_authenticated %}
+                                <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal; margin-left: 10px;">(Anonim Olarak)</span>
+                            {% endif %}
+                        </h3>
+                        <form action="{% url 'add_review' game_id=game.id %}" method="POST">
+                            {% csrf_token %}
+                            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-bottom: 15px;">
+                                <div class="form-group" style="display: flex; align-items: center; gap: 15px; margin-bottom: 0;">
+                                    <label for="ratingSelect" style="font-weight: 600; font-size: 0.95rem;">Puanınız:</label>
+                                    <select name="rating" id="ratingSelect" class="filter-select" style="min-width: 180px; width: auto;">
+                                        <option value="10">10 / Harika</option>
+                                        <option value="9">9 / Çok İyi</option>
+                                        <option value="8">8 / İyi</option>
+                                        <option value="7">7 / Ortalama Üstü</option>
+                                        <option value="6">6 / Ortalama</option>
+                                        <option value="5">5 / Yetersiz</option>
+                                        <option value="4">4 / Zayıf</option>
+                                        <option value="3">3 / Kötü</option>
+                                        <option value="2">2 / Çok Kötü</option>
+                                        <option value="1">1 / Rezalet</option>
+                                    </select>
+                                </div>
+                                {% if user.is_authenticated %}
+                                    <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 0;">
+                                        <input type="checkbox" name="is_anonymous" id="isAnonymous" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent);">
+                                        <label for="isAnonymous" style="font-weight: 600; font-size: 0.95rem; cursor: pointer; color: var(--text-secondary);">Anonim olarak gönder</label>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="reviewText" style="display: block; font-weight: 600; font-size: 0.95rem; margin-bottom: 8px;">Düşünceleriniz:</label>
+                                <textarea name="text" id="reviewText" rows="4" class="form-control" placeholder="Oyun hakkındaki fikirlerinizi yazın..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Yorumu Gönder</button>
+                        </form>
+                    </div>
+
+                    <!-- Reviews List -->
+                    <div class="reviews-list">
+                        {% if reviews %}
+                            {% for review in reviews %}
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="review-user">
+                                            <div class="avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                                {% if review.user %}{{ review.user.username|slice:":2" }}{% else %}AN{% endif %}
+                                            </div>
+                                            <span>{% if review.user %}{{ review.user.username }}{% else %}Anonim{% endif %}</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div class="review-rating">
+                                                <i class="fa-solid fa-star"></i> {{ review.rating }}/10
+                                            </div>
+                                            {% if user.is_staff %}
+                                                <a href="{% url 'delete_review' review_id=review.id %}" onclick="return confirm('Bu yorumu silmek istediğinize emin misiniz?')" class="btn btn-danger" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 8px; font-weight: 500; min-height: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="Yorumu Sil">
+                                                    <i class="fa-solid fa-trash-can"></i> Sil
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <p class="review-text">{{ review.text }}</p>
+                                    <div class="review-date">
+                                        {{ review.created_at|date:"d.m.Y H:i" }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p style="text-align: center; color: var(--text-secondary); padding: 20px 0;">Henüz hiç yorum yapılmamış. İlk yorumu siz yapın!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Side Technical Specifications -->
+        <aside class="specs-sidebar">
+            <div class="specs-widget">
+                <h3 class="specs-title">Detaylı Bilgiler</h3>
+                
+                <div class="spec-item">
+                    <span class="spec-label">Geliştirici</span>
+                    <span class="spec-value">{{ game.developer|default:"Bilinmiyor" }}</span>
+                </div>
+
+                <div class="spec-item">
+                    <span class="spec-label">Yayıncı</span>
+                    <span class="spec-value">{{ game.publisher|default:"Bilinmiyor" }}</span>
+                </div>
+
+                <div class="spec-item">
+                    <span class="spec-label">Çıkış Tarihi</span>
+                    <span class="spec-value">{{ game.release_date|date:"d F Y"|default:"Bilinmiyor" }}</span>
+                </div>
+
+                <div class="spec-item">
+                    <span class="spec-label">Platformlar</span>
+                    <span class="spec-value">{{ game.get_platforms_display }}</span>
+                </div>
+
+                <div class="spec-item">
+                    <span class="spec-label">Kategoriler / Türler</span>
+                    <span class="spec-value">{{ game.get_genres_display }}</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Recommendations Section -->
+    {% if recommendations %}
+        <div style="margin-top: 60px;">
+            <div class="section-header">
+                <h2 class="section-title">Benzer Oyunlar</h2>
+            </div>
+            <div class="media-grid">
+                {% for rec in recommendations %}
+                    <div class="media-card">
+                        <a href="{% url 'game_detail' slug=rec.slug %}">
+                            <div class="card-img-wrapper">
+                                <img src="{{ rec.cover_image }}" alt="{{ rec.title }}" class="card-img">
+                                <div class="card-rating-top {% if rec.rating_metacritic >= 90 %}rating-high{% elif rec.rating_metacritic >= 80 %}rating-mid{% else %}rating-low{% endif %}">
+                                    <i class="fa-solid fa-star"></i> {{ rec.rating_metacritic }}
+                                </div>
+                                <div class="card-hover-overlay">
+                                    <h3 class="card-title">{{ rec.title }}</h3>
+                                    <p class="card-genres">{{ rec.get_genres_display }}</p>
+                                    <div class="card-meta-bottom">
+                                        <div class="card-platforms">
+                                            {% for platform in rec.platforms.all|slice:":3" %}
+                                                <i class="fa-brands {% if platform.name == 'PC' %}fa-windows{% elif 'PlayStation' in platform.name %}fa-playstation{% elif 'Xbox' in platform.name %}fa-xbox{% elif 'Nintendo' in platform.name %}fa-nintendo-switch{% else %}fa-gamepad{% endif %}" title="{{ platform.name }}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="card-type-badge">{{ rec.release_date|date:"Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchTab(element, tabId) {
+        // Remove active class from all headers and panels
+        const headers = document.querySelectorAll('.tab-header');
+        const panes = document.querySelectorAll('.tab-pane');
+        
+        headers.forEach(h => h.classList.remove('active'));
+        panes.forEach(p => p.classList.remove('active'));
+
+        element.classList.add('active');
+        const activePane = document.getElementById(tabId);
+        activePane.classList.add('active');
+
+        // Stop playing video/audio when switching away from the trailer tab
+        if (tabId !== 'trailerTab') {
+            const iframe = document.querySelector('#trailer iframe');
+            if (iframe) {
+                iframe.src = iframe.src; // Reloads the iframe, instantly stopping YouTube playback/sound
+            }
+            const video = document.querySelector('#trailer video');
+            if (video) {
+                video.pause();
+            }
+        }
+    }
+
+    // Auto-switch to trailer tab if URL contains hash #trailer
+    window.addEventListener('DOMContentLoaded', () => {
+        if (window.location.hash === '#trailer') {
+            const trailerHeader = document.getElementById('trailer-header');
+            if (trailerHeader) {
+                // Trigger click programmatically
+                trailerHeader.click();
+                // Scroll slightly down to tabs
+                trailerHeader.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // AJAX Watchlist Toggle
+        const wishlistBtn = document.getElementById('wishlistBtn');
+        if (wishlistBtn) {
+            wishlistBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.in_wishlist) {
+                            wishlistBtn.className = 'btn btn-secondary';
+                            wishlistBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i> İstek Listesinde';
+                        } else {
+                            wishlistBtn.className = 'btn btn-primary';
+                            wishlistBtn.innerHTML = '<i class="fa-regular fa-bookmark"></i> İstek Listesine Ekle';
+                        }
+                        
+                        // Dynamically inject dynamic glassmorphic toast notification
+                        let msgContainer = document.querySelector('.messages-container');
+                        if (!msgContainer) {
+                            msgContainer = document.createElement('div');
+                            msgContainer.className = 'messages-container';
+                            document.body.appendChild(msgContainer);
+                        }
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success';
+                        alertDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i><span>' + data.message + '</span>';
+                        msgContainer.appendChild(alertDiv);
+                        
+                        // Slide out and remove toast notification after 3 seconds
+                        setTimeout(() => {
+                            alertDiv.style.opacity = '0';
+                            alertDiv.style.transform = 'translateX(100%)';
+                            alertDiv.style.transition = 'all 0.5s ease';
+                            setTimeout(() => alertDiv.remove(), 500);
+                        }, 3000);
+                    }
+                })
+                .catch(err => console.error('Error toggling wishlist:', err));
+            });
+        }
+    });
+</script>
+{% endblock %}

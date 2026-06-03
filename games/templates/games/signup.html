@@ -1,0 +1,30 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block title %}GamePortal - Kaydol{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <h2 class="auth-title">Kayıt Ol</h2>
+            <p class="auth-subtitle">Yeni hesap oluşturup hemen puanlamaya başlayın</p>
+            
+            <form method="POST" action="{% url 'signup' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+                {% csrf_token %}
+                
+                {{ form.as_p }}
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 20px; padding: 12px;">
+                    <i class="fa-solid fa-user-plus"></i> Hesap Oluştur ve Kaydol
+                </button>
+            </form>
+            
+            <p style="text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--text-secondary);">
+                Zaten hesabınız var mı? 
+                <a href="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" style="color: var(--accent); font-weight: 600;">Giriş yapın</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

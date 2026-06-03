@@ -1,0 +1,242 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block title %}GamePortal - Ana Sayfa{% endblock %}
+
+{% block content %}
+<!-- Hero Section (Dynamic Slideshow) -->
+{% if featured_games %}
+<section class="hero-slider">
+    {% for game in featured_games %}
+        <div class="hero-slide {% if forloop.first %}active{% endif %}" data-slide-index="{{ forloop.counter0 }}">
+            <div class="hero-bg" style="background-image: url('{{ game.backdrop_image }}');"></div>
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fa-solid fa-fire-flame-simple"></i> ÖNE ÇIKAN OYUN
+                </div>
+                <h1 class="hero-title">{{ game.title }}</h1>
+                <div class="hero-meta">
+                    <span class="rating-badge">
+                        <i class="fa-solid fa-star"></i> Metacritic: {{ game.rating_metacritic }}
+                    </span>
+                    <span>&bull;</span>
+                    <span>{{ game.developer }}</span>
+                    <span>&bull;</span>
+                    <span>{{ game.release_date|date:"Y" }}</span>
+                </div>
+                <p class="hero-desc">{{ game.description }}</p>
+                <div class="hero-actions">
+                    <a href="{% url 'game_detail' slug=game.slug %}" class="btn btn-primary">
+                        <i class="fa-solid fa-circle-info"></i> Detayları Gör
+                    </a>
+                    {% if game.video_url %}
+                    <a href="{% url 'game_detail' slug=game.slug %}#trailer" class="btn btn-secondary">
+                        <i class="fa-solid fa-circle-play"></i> Fragman İzle
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- Clickable Thumbnails (Pictures on Main Screen) -->
+    <div class="hero-thumbnails">
+        {% for game in featured_games %}
+            <div class="hero-thumb {% if forloop.first %}active{% endif %}" onclick="goToSlide({{ forloop.counter0 }})">
+                <img src="{{ game.cover_image }}" alt="{{ game.title }}">
+                <div class="thumb-info">
+                    <span class="thumb-title">{{ game.title }}</span>
+                    <span class="thumb-desc">{{ game.developer }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<div class="container-fluid">
+    <!-- Featured Games Section (Carousels) -->
+    {% if featured_games %}
+    <div class="section-header">
+        <h2 class="section-title">Öne Çıkan Oyunlar</h2>
+        <a href="{% url 'browse' %}" class="btn btn-secondary">Tümünü Gör</a>
+    </div>
+    <div class="media-carousel-wrapper">
+        <button class="carousel-control prev" onclick="scrollCarousel(this, -1)"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="media-carousel">
+            {% for game in featured_games %}
+                <div class="media-card">
+                    <a href="{% url 'game_detail' slug=game.slug %}">
+                        <div class="card-img-wrapper">
+                            <img src="{{ game.cover_image }}" alt="{{ game.title }}" class="card-img">
+                            <div class="card-rating-top {% if game.rating_metacritic >= 90 %}rating-high{% elif game.rating_metacritic >= 80 %}rating-mid{% else %}rating-low{% endif %}">
+                                <i class="fa-solid fa-star"></i> {{ game.rating_metacritic }}
+                            </div>
+                            <div class="card-hover-overlay">
+                                <h3 class="card-title">{{ game.title }}</h3>
+                                <p class="card-genres">{{ game.get_genres_display }}</p>
+                                <div class="card-meta-bottom">
+                                    <div class="card-platforms">
+                                        {% for platform in game.platforms.all|slice:":3" %}
+                                            <i class="fa-brands {% if platform.name == 'PC' %}fa-windows{% elif 'PlayStation' in platform.name %}fa-playstation{% elif 'Xbox' in platform.name %}fa-xbox{% elif 'Nintendo' in platform.name %}fa-nintendo-switch{% else %}fa-gamepad{% endif %}" title="{{ platform.name }}"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="card-type-badge">{{ game.release_date|date:"Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control next" onclick="scrollCarousel(this, 1)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    {% endif %}
+
+    <!-- Trending Games Section -->
+    {% if trending_games %}
+    <div class="section-header">
+        <h2 class="section-title">En Popülerler (Metacritic)</h2>
+    </div>
+    <div class="media-carousel-wrapper">
+        <button class="carousel-control prev" onclick="scrollCarousel(this, -1)"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="media-carousel">
+            {% for game in trending_games %}
+                <div class="media-card">
+                    <a href="{% url 'game_detail' slug=game.slug %}">
+                        <div class="card-img-wrapper">
+                            <img src="{{ game.cover_image }}" alt="{{ game.title }}" class="card-img">
+                            <div class="card-rating-top {% if game.rating_metacritic >= 90 %}rating-high{% elif game.rating_metacritic >= 80 %}rating-mid{% else %}rating-low{% endif %}">
+                                <i class="fa-solid fa-star"></i> {{ game.rating_metacritic }}
+                            </div>
+                            <div class="card-hover-overlay">
+                                <h3 class="card-title">{{ game.title }}</h3>
+                                <p class="card-genres">{{ game.get_genres_display }}</p>
+                                <div class="card-meta-bottom">
+                                    <div class="card-platforms">
+                                        {% for platform in game.platforms.all|slice:":3" %}
+                                            <i class="fa-brands {% if platform.name == 'PC' %}fa-windows{% elif 'PlayStation' in platform.name %}fa-playstation{% elif 'Xbox' in platform.name %}fa-xbox{% elif 'Nintendo' in platform.name %}fa-nintendo-switch{% else %}fa-gamepad{% endif %}" title="{{ platform.name }}"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="card-type-badge">{{ game.release_date|date:"Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control next" onclick="scrollCarousel(this, 1)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    {% endif %}
+
+    <!-- Latest Games Section -->
+    {% if latest_games %}
+    <div class="section-header">
+        <h2 class="section-title">Yeni Eklenenler</h2>
+    </div>
+    <div class="media-carousel-wrapper">
+        <button class="carousel-control prev" onclick="scrollCarousel(this, -1)"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="media-carousel">
+            {% for game in latest_games %}
+                <div class="media-card">
+                    <a href="{% url 'game_detail' slug=game.slug %}">
+                        <div class="card-img-wrapper">
+                            <img src="{{ game.cover_image }}" alt="{{ game.title }}" class="card-img">
+                            <div class="card-rating-top {% if game.rating_metacritic >= 90 %}rating-high{% elif game.rating_metacritic >= 80 %}rating-mid{% else %}rating-low{% endif %}">
+                                <i class="fa-solid fa-star"></i> {{ game.rating_metacritic }}
+                            </div>
+                            <div class="card-hover-overlay">
+                                <h3 class="card-title">{{ game.title }}</h3>
+                                <p class="card-genres">{{ game.get_genres_display }}</p>
+                                <div class="card-meta-bottom">
+                                    <div class="card-platforms">
+                                        {% for platform in game.platforms.all|slice:":3" %}
+                                            <i class="fa-brands {% if platform.name == 'PC' %}fa-windows{% elif 'PlayStation' in platform.name %}fa-playstation{% elif 'Xbox' in platform.name %}fa-xbox{% elif 'Nintendo' in platform.name %}fa-nintendo-switch{% else %}fa-gamepad{% endif %}" title="{{ platform.name }}"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="card-type-badge">{{ game.release_date|date:"Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <button class="carousel-control next" onclick="scrollCarousel(this, 1)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.hero-slide');
+    const thumbs = document.querySelectorAll('.hero-thumb');
+    const totalSlides = slides.length;
+    let slideTimer;
+
+    function showSlide(index) {
+        if (totalSlides === 0) return;
+        if (index < 0) index = totalSlides - 1;
+        if (index >= totalSlides) index = 0;
+        
+        currentSlide = index;
+
+        // Toggle slides visibility
+        slides.forEach((slide, i) => {
+            if (i === currentSlide) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+
+        // Toggle thumbnails selection
+        thumbs.forEach((thumb, i) => {
+            if (i === currentSlide) {
+                thumb.classList.add('active');
+                thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            } else {
+                thumb.classList.remove('active');
+            }
+        });
+    }
+
+    function nextSlide() {
+        showSlide(currentSlide + 1);
+    }
+
+    function goToSlide(index) {
+        showSlide(index);
+        resetTimer();
+    }
+
+    function startTimer() {
+        slideTimer = setInterval(nextSlide, 5000); // Cycles every 5 seconds
+    }
+
+    function resetTimer() {
+        clearInterval(slideTimer);
+        startTimer();
+    }
+
+    // Auto rotate slides
+    if (totalSlides > 1) {
+        startTimer();
+    }
+
+    // Scroll carousels smoothly
+    function scrollCarousel(button, direction) {
+        const wrapper = button.closest('.media-carousel-wrapper');
+        const carousel = wrapper.querySelector('.media-carousel');
+        const scrollAmount = carousel.offsetWidth * 0.75;
+        carousel.scrollBy({
+            left: direction * scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+</script>
+{% endblock %}

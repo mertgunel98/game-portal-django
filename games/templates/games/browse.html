@@ -1,0 +1,157 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block title %}GamePortal - Göz At{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="browse-layout">
+        <!-- Sidebar Filters -->
+        <aside class="filter-sidebar">
+            <form action="{% url 'browse' %}" method="GET" id="filterForm">
+                <!-- Search keyword preservation (hidden if using main navbar search, but we can also display a field here) -->
+                <div class="filter-group">
+                    <label class="filter-label" for="searchQ">Kelime Arama</label>
+                    <input type="text" name="q" id="searchQ" class="filter-select" placeholder="Oyun adı yazın..." value="{{ search_query|default:'' }}">
+                </div>
+
+                <!-- Genre Selector Pills -->
+                <div class="filter-group">
+                    <span class="filter-label">Kategoriler / Türler</span>
+                    <input type="hidden" name="genre" id="genreInput" value="{{ selected_genre|default:'' }}">
+                    <div class="genre-pills">
+                        <div class="genre-pill {% if not selected_genre %}active{% endif %}" onclick="selectGenre('')">Tümü</div>
+                        {% for genre in genres %}
+                            <div class="genre-pill {% if selected_genre == genre.slug %}active{% endif %}" onclick="selectGenre('{{ genre.slug }}')">
+                                {{ genre.name }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Platform Filter -->
+                <div class="filter-group">
+                    <label class="filter-label" for="platformSelect">Platform</label>
+                    <select name="platform" id="platformSelect" class="filter-select" onchange="this.form.submit()">
+                        <option value="">Tümü</option>
+                        {% for platform in platforms %}
+                            <option value="{{ platform.slug }}" {% if selected_platform == platform.slug %}selected{% endif %}>
+                                {{ platform.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Metacritic Min Rating Slider -->
+                <div class="filter-group">
+                    <div class="rating-range-container">
+                        <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 0.9rem;">
+                            <span>Minimum Metacritic</span>
+                            <span id="ratingVal">{{ selected_rating|default:'0' }}</span>
+                        </div>
+                        <input type="range" name="rating" min="0" max="100" class="rating-range-slider" id="ratingSlider" value="{{ selected_rating|default:'0' }}" oninput="updateRatingLabel(this.value)" onchange="this.form.submit()">
+                    </div>
+                </div>
+
+                <!-- Sorting Dropdown -->
+                <div class="filter-group">
+                    <label class="filter-label" for="sortSelect">Sıralama</label>
+                    <select name="sort" id="sortSelect" class="filter-select" onchange="this.form.submit()">
+                        <option value="latest" {% if selected_sort == 'latest' %}selected{% endif %}>En Yeniler</option>
+                        <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Metacritic Puanı</option>
+                        <option value="title" {% if selected_sort == 'title' %}selected{% endif %}>İsim (A-Z)</option>
+                    </select>
+                </div>
+
+                <!-- Reset Filters -->
+                <a href="{% url 'browse' %}" class="btn btn-secondary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                    <i class="fa-solid fa-filter-circle-xmark"></i> Filtreleri Temizle
+                </a>
+            </form>
+        </aside>
+
+        <!-- Games Catalog Grid -->
+        <main>
+            <div class="section-header">
+                <h2 class="section-title">Oyun Kataloğu</h2>
+                <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                    {{ page_obj.paginator.count }} oyun listelendi
+                </span>
+            </div>
+
+            {% if game_list %}
+                <div class="media-grid">
+                    {% for game in game_list %}
+                        <div class="media-card">
+                            <a href="{% url 'game_detail' slug=game.slug %}">
+                                <div class="card-img-wrapper">
+                                    <img src="{{ game.cover_image }}" alt="{{ game.title }}" class="card-img">
+                                    <div class="card-rating-top {% if game.rating_metacritic >= 90 %}rating-high{% elif game.rating_metacritic >= 80 %}rating-mid{% else %}rating-low{% endif %}">
+                                        <i class="fa-solid fa-star"></i> {{ game.rating_metacritic }}
+                                    </div>
+                                    <div class="card-hover-overlay">
+                                        <h3 class="card-title">{{ game.title }}</h3>
+                                        <p class="card-genres">{{ game.get_genres_display }}</p>
+                                        <div class="card-meta-bottom">
+                                            <div class="card-platforms">
+                                                {% for platform in game.platforms.all|slice:":3" %}
+                                                    <i class="fa-brands {% if platform.name == 'PC' %}fa-windows{% elif 'PlayStation' in platform.name %}fa-playstation{% elif 'Xbox' in platform.name %}fa-xbox{% elif 'Nintendo' in platform.name %}fa-nintendo-switch{% else %}fa-gamepad{% endif %}" title="{{ platform.name }}"></i>
+                                                {% endfor %}
+                                            </div>
+                                            <span class="card-type-badge">{{ game.release_date|date:"Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if page_obj.has_other_pages %}
+                <div class="pagination-container" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 40px;">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}{% if selected_platform %}&platform={{ selected_platform }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if selected_sort %}&sort={{ selected_sort }}{% endif %}" class="btn btn-secondary" style="padding: 8px 16px; border-radius: 12px;"><i class="fa-solid fa-chevron-left"></i> Geri</a>
+                    {% endif %}
+
+                    <span style="color: var(--text-secondary); font-weight: 600; font-size: 0.95rem;">
+                        Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                    </span>
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_genre %}&genre={{ selected_genre }}{% endif %}{% if selected_platform %}&platform={{ selected_platform }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if selected_sort %}&sort={{ selected_sort }}{% endif %}" class="btn btn-secondary" style="padding: 8px 16px; border-radius: 12px;">İleri <i class="fa-solid fa-chevron-right"></i></a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% else %}
+                <div style="text-align: center; padding: 80px 0; color: var(--text-secondary);">
+                    <i class="fa-regular fa-folder-open" style="font-size: 4rem; margin-bottom: 20px; display: block; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-neon) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <h3>Arama kriterlerinize uygun oyun bulunamadı.</h3>
+                    <p style="margin-top: 10px;">Farklı filtreler uygulamayı deneyebilir veya arama kelimenizi değiştirebilirsiniz.</p>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectGenre(slug) {
+        document.getElementById('genreInput').value = slug;
+        document.getElementById('filterForm').submit();
+    }
+
+    function updateRatingLabel(val) {
+        document.getElementById('ratingVal').innerText = val;
+    }
+
+    // Submit form when keyword input is submitted via enter
+    document.getElementById('searchQ').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('filterForm').submit();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GamePortal - Efsane Oyunlar Dünyası{% endblock %}</title>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Premium CSS stylesheet -->
+    <link rel="stylesheet" href="{% static 'games/css/style.css' %}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Glassmorphic Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="{% url 'home' %}" class="nav-brand">
+            <i class="fa-solid fa-gamepad"></i> Game<span>Portal</span>
+        </a>
+        
+        <ul class="nav-menu">
+            <li><a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Ana Sayfa</a></li>
+            <li><a href="{% url 'browse' %}" class="nav-link {% if request.resolver_match.url_name == 'browse' %}active{% endif %}">Göz At</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'wishlist' %}" class="nav-link {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">İstek Listem</a></li>
+                {% if user.is_staff %}
+                    <li><a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"><i class="fa-solid fa-screwdriver-wrench"></i> Yönetim Paneli</a></li>
+                {% endif %}
+            {% endif %}
+        </ul>
+        
+        <div class="nav-actions">
+            <!-- Search Form -->
+            <form action="{% url 'browse' %}" method="GET" class="search-container">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" name="q" placeholder="Oyun, geliştirici ara..." class="search-input" value="{{ search_query|default:'' }}">
+            </form>
+            
+            {% if user.is_authenticated %}
+                <div class="user-menu">
+                    <div class="avatar" title="{{ user.username }}">{{ user.username|slice:":2" }}</div>
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #fff;">{{ user.username }}</span>
+                    <a href="{% url 'logout' %}" style="margin-left: 10px; color: var(--text-secondary);" title="Çıkış Yap">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
+                </div>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-secondary">Giriş Yap</a>
+                <a href="{% url 'signup' %}" class="btn btn-primary">Kaydol</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Message Alerts Container -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {% if message.tags == 'success' %}
+                    <i class="fa-solid fa-circle-check"></i>
+                {% elif message.tags == 'error' %}
+                    <i class="fa-solid fa-circle-xmark"></i>
+                {% else %}
+                    <i class="fa-solid fa-circle-info"></i>
+                {% endif %}
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#" class="footer-link">Hakkımızda</a>
+            <a href="#" class="footer-link">Kullanım Koşulları</a>
+            <a href="#" class="footer-link">Gizlilik Politikası</a>
+            <a href="#" class="footer-link">Destek</a>
+        </div>
+        <p>&copy; 2026 GamePortal. Tüm Hakları Saklıdır. W3Schools Django referans alınarak tasarlanmıştır.</p>
+    </footer>
+
+    <!-- Vanilla Javascript for header changes and alert fadeouts -->
+    <script>
+        // Change navbar background on scroll
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Auto-remove alerts after 4 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateX(100%)';
+                alert.style.transition = 'all 0.5s ease';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 4000);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

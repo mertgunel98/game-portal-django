@@ -1,0 +1,30 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block title %}GamePortal - Giriş Yap{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <h2 class="auth-title">Hoş Geldiniz</h2>
+            <p class="auth-subtitle">Efsane oyun portalına giriş yapın</p>
+            
+            <form method="POST" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+                {% csrf_token %}
+                
+                {{ form.as_p }}
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 20px; padding: 12px;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Giriş Yap
+                </button>
+            </form>
+            
+            <p style="text-align: center; margin-top: 24px; font-size: 0.9rem; color: var(--text-secondary);">
+                Henüz hesabınız yok mu? 
+                <a href="{% url 'signup' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" style="color: var(--accent); font-weight: 600;">Kaydolun</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
