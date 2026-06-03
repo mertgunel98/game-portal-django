@@ -1,1 +1,1 @@
-web: gunicorn gameportal.wsgi --log-file -
+web: gunicorn gameportal.wsgi --bind 0.0.0.0:$PORT --log-file -

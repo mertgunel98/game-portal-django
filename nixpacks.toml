@@ -11,4 +11,4 @@ cmds = [
 ]
 
 [start]
-cmd = "gunicorn gameportal.wsgi --log-file -"
+cmd = "gunicorn gameportal.wsgi --bind 0.0.0.0:$PORT --log-file -"
