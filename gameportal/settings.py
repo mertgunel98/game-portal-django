@@ -21,7 +21,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-mv@20zf0@xj+bqo=l%x5^
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # Railway otomatik olarak RAILWAY_PUBLIC_DOMAIN sağlar
-_base_hosts = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.railway.app', cast=lambda v: [s.strip() for s in v.split(',')])
+_base_hosts = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.railway.app,.up.railway.app', cast=lambda v: [s.strip() for s in v.split(',')])
 _railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
 _railway_static_url = os.environ.get('RAILWAY_STATIC_URL', '')
 
