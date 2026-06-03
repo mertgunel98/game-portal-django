@@ -20,7 +20,19 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-mv@20zf0@xj+bqo=l%x5^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.railway.app', cast=lambda v: [s.strip() for s in v.split(',')])
+# Railway otomatik olarak RAILWAY_PUBLIC_DOMAIN sağlar
+_base_hosts = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.railway.app', cast=lambda v: [s.strip() for s in v.split(',')])
+_railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
+_railway_static_url = os.environ.get('RAILWAY_STATIC_URL', '')
+
+ALLOWED_HOSTS = _base_hosts
+if _railway_domain and _railway_domain not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_railway_domain)
+if _railway_static_url and _railway_static_url not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_railway_static_url)
+
+# CSRF için de aynı hostları kullan
+CSRF_TRUSTED_ORIGINS = [f'https://{h}' for h in ALLOWED_HOSTS if not h.startswith('.') and h not in ('localhost', '127.0.0.1')]
 
 
 # Application definition
