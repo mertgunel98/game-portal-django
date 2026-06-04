@@ -145,6 +145,7 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 # Production security settings (only when DEBUG=False)
 if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
