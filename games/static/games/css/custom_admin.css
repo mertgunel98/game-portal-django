@@ -1,0 +1,138 @@
+/* Custom Theme and Styles for Django Administration Panel */
+
+:root {
+    /* Primary brand colors - Sleek Dark Indigo & Magenta theme matching the GamePortal design */
+    --primary: #121214;                  /* Deep dark background for header */
+    --primary-fg: #f3f4f6;               /* Light gray text */
+    --accent: #d946ef;                   /* Vibrant pink/magenta accent */
+    --accent-fg: #ffffff;
+    --link-color: #d946ef;               /* Accent pink for links */
+    --link-hover-color: #f472b6;
+    --link-selected-color: #d946ef;
+    
+    /* Body backgrounds and elements */
+    --body-bg: #1a1a1e;                  /* Dark body background */
+    --body-fg: #e5e7eb;                  /* Light text color */
+    --body-quiet-color: #9ca3af;
+    
+    /* Table styling */
+    --darkened-bg: #222227;              /* Dark background for table rows */
+    --breadcrumbs-bg: #1e1e24;           /* Breadcrumbs bar background */
+    --breadcrumbs-link-color: #e5e7eb;
+    
+    /* Selectors, buttons, and badges */
+    --button-bg: #d946ef;
+    --button-hover-bg: #c084fc;
+    --default-button-bg: #2563eb;        /* Blue for default buttons */
+    --default-button-hover-bg: #3b82f6;
+}
+
+/* Apply background and border overrides for a fully integrated theme */
+body {
+    background-color: var(--body-bg) !important;
+    color: var(--body-fg) !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+#header {
+    background: var(--primary) !important;
+    border-bottom: 2px solid var(--accent) !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+#branding h1 {
+    color: var(--accent) !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+}
+
+#branding h1 a {
+    color: var(--accent) !important;
+}
+
+.breadcrumbs {
+    background: var(--breadcrumbs-bg) !important;
+    border-bottom: 1px solid #2e2e38 !important;
+}
+
+.module h2, .module caption, .inline-group h2 {
+    background: #25252b !important;
+    color: var(--accent) !important;
+    border-bottom: 1px solid var(--accent) !important;
+}
+
+/* Tables and Rows */
+div.results, #changelist-filter, .module {
+    background: #222227 !important;
+    border: 1px solid #2e2e38 !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+#changelist table thead th {
+    background: #2b2b33 !important;
+    border-bottom: 1px solid #3e3e4f !important;
+    color: #f3f4f6 !important;
+}
+
+#changelist table tbody tr {
+    background: #222227 !important;
+    border-bottom: 1px solid #2e2e38 !important;
+    color: #e5e7eb !important;
+}
+
+#changelist table tbody tr:hover {
+    background: #2b2b35 !important;
+}
+
+/* Active links and selections */
+#changelist-filter a:hover, #changelist-filter li.selected a {
+    color: var(--accent) !important;
+    border-left-color: var(--accent) !important;
+}
+
+.button, input[type=submit], input[type=button], .submit-row a.deletelink {
+    border-radius: 6px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+/* Form fields customization */
+input[type=text], input[type=password], input[type=email], input[type=number], select, textarea {
+    background: #2b2b33 !important;
+    border: 1px solid #444455 !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+}
+
+input[type=text]:focus, select:focus, textarea:focus {
+    border-color: var(--accent) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(217, 70, 239, 0.25) !important;
+}
+
+/* Custom Table View Utilities */
+.admin-cover-preview {
+    width: 38px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #3e3e4f;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.admin-rating-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 11px;
+    color: #ffffff !important;
+    text-align: center;
+    min-width: 20px;
+}
+
+.rating-high { background-color: #10b981 !important; } /* Green */
+.rating-mid { background-color: #f59e0b !important; }  /* Gold */
+.rating-low { background-color: #ef4444 !important; }  /* Red */
