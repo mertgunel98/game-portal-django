@@ -198,7 +198,6 @@
         thumbs.forEach((thumb, i) => {
             if (i === currentSlide) {
                 thumb.classList.add('active');
-                thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
             } else {
                 thumb.classList.remove('active');
             }
