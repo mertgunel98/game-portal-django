@@ -46,19 +46,28 @@ if (db_needs_migration or static_needs_collection) and not os.path.exists(lock_f
         
         # 1. Run migrations if tables are missing
         if db_needs_migration:
-            print("==> Database tables are missing. Running migrations programmatically...")
-            call_command('migrate', interactive=False)
+            try:
+                print("==> Database tables are missing. Running migrations programmatically...")
+                call_command('migrate', interactive=False)
+            except Exception as e:
+                print(f"Error during migrate: {e}")
             
             # Seed games immediately if we just migrated
-            from games.models import Game
-            if Game.objects.count() == 0:
-                print("==> Database is empty. Seeding games programmatically...")
-                call_command('seed_games', interactive=False)
+            try:
+                from games.models import Game
+                if Game.objects.count() == 0:
+                    print("==> Database is empty. Seeding games programmatically...")
+                    call_command('seed_games')
+            except Exception as e:
+                print(f"Error during seeding: {e}")
         
         # 2. Run collectstatic if staticfiles is missing
         if static_needs_collection:
-            print("==> Static files are missing. Running collectstatic programmatically...")
-            call_command('collectstatic', interactive=False, clear=True)
+            try:
+                print("==> Static files are missing. Running collectstatic programmatically...")
+                call_command('collectstatic', interactive=False, clear=True)
+            except Exception as e:
+                print(f"Error during collectstatic: {e}")
             
     except Exception as e:
         print(f"Error during startup setup: {e}")
@@ -78,7 +87,7 @@ try:
         from games.models import Game
         if Game.objects.count() == 0:
             print("==> Database has no games. Seeding games programmatically...")
-            call_command('seed_games', interactive=False)
+            call_command('seed_games')
 except Exception as e:
     print(f"Error checking/seeding games: {e}")
 
