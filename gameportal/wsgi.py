@@ -18,20 +18,29 @@ from django.db import connection
 # Safe Programmatic Startup
 # These checks prevent Gunicorn workers from repeating heavy setup commands and timing out.
 
-# 1. Run Migrations & Seeding ONLY if tables do not exist
+# 1. Run Migrations ONLY if tables do not exist
 try:
     tables = connection.introspection.table_names()
     if 'games_game' not in tables:
         print("==> Database tables are missing. Running migrations programmatically...")
         call_command('migrate', interactive=False)
-        
-        # Seed games immediately after migration if empty
-        print("==> Seeding initial games data programmatically...")
-        call_command('seed_games', interactive=False)
     else:
-        print("==> Database tables already exist. Skipping migrations/seeding.")
+        print("==> Database tables already exist. Skipping migrations.")
 except Exception as e:
-    print(f"Error checking/migrating database: {e}")
+    print(f"Error running migrate: {e}")
+
+# 2. Seed Games only if database is empty to prevent wiping user data on restarts
+try:
+    tables = connection.introspection.table_names()
+    if 'games_game' in tables:
+        from games.models import Game
+        if Game.objects.count() == 0:
+            print("==> Database has no games. Seeding games programmatically...")
+            call_command('seed_games', interactive=False)
+        else:
+            print(f"==> Database already has {Game.objects.count()} games. Skipping seed.")
+except Exception as e:
+    print(f"Error checking/seeding games: {e}")
 
 # 2. Run Collectstatic ONLY if staticfiles directory doesn't exist or is empty
 try:
